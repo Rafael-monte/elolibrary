@@ -1,13 +1,13 @@
 package com.example.elolibrary.controller;
 
 
-import com.example.elolibrary.dto.ErrorDto;
-import com.example.elolibrary.model.Usuario;
+import com.example.elolibrary.dto.output.ErrorOutputDto;
+import com.example.elolibrary.dto.input.UpdateUsuarioInputDto;
+import com.example.elolibrary.dto.input.UsuarioInputDto;
 import com.example.elolibrary.service.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -32,26 +32,26 @@ public class UsuarioController {
         try {
             return ResponseEntity.ok(this.usuarioService.findById(id));
         } catch (HttpClientErrorException e) {
-            return ResponseEntity.status(e.getStatusCode()).body(new ErrorDto().wrap(e.getStatusText()));
+            return ResponseEntity.status(e.getStatusCode()).body(new ErrorOutputDto().wrap(e.getStatusText()));
         }
     }
 
     @PostMapping()
-    public ResponseEntity<?> save(@RequestBody Usuario usuario) {
+    public ResponseEntity<?> save(@RequestBody UsuarioInputDto usuarioInputDto) {
         try {
-            this.usuarioService.save(usuario);
+            this.usuarioService.save(usuarioInputDto.toModel());
             return ResponseEntity.status(HttpStatus.CREATED).build();
         } catch (HttpClientErrorException e) {
-            return ResponseEntity.status(e.getStatusCode()).body(new ErrorDto().wrap(e.getStatusText()));
+            return ResponseEntity.status(e.getStatusCode()).body(new ErrorOutputDto().wrap(e.getStatusText()));
         }
     }
 
     @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody Usuario usuario) {
+    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody UpdateUsuarioInputDto updateUsuarioInputDto) {
         try {
-            return ResponseEntity.ok(this.usuarioService.update(usuario, id));
+            return ResponseEntity.ok(this.usuarioService.update(updateUsuarioInputDto.toModel(), id));
         } catch (HttpClientErrorException e) {
-            return ResponseEntity.status(e.getStatusCode()).body(new ErrorDto().wrap(e.getStatusText()));
+            return ResponseEntity.status(e.getStatusCode()).body(new ErrorOutputDto().wrap(e.getStatusText()));
         }
     }
 
@@ -61,7 +61,7 @@ public class UsuarioController {
             this.usuarioService.deleteById(id);
             return ResponseEntity.noContent().build();
         } catch (HttpClientErrorException e) {
-            return ResponseEntity.status(e.getStatusCode()).body(new ErrorDto().wrap(e.getStatusText()));
+            return ResponseEntity.status(e.getStatusCode()).body(new ErrorOutputDto().wrap(e.getStatusText()));
         }
     }
 }

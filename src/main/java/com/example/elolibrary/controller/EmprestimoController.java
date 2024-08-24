@@ -1,7 +1,8 @@
 package com.example.elolibrary.controller;
 
-import com.example.elolibrary.dto.EmprestimoInputDto;
-import com.example.elolibrary.dto.ErrorDto;
+import com.example.elolibrary.dto.input.EmprestimoInputDto;
+import com.example.elolibrary.dto.input.EmprestimoUpdateInputDto;
+import com.example.elolibrary.dto.output.ErrorOutputDto;
 import com.example.elolibrary.model.Emprestimo;
 import com.example.elolibrary.service.EmprestimoService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,16 +24,16 @@ public class EmprestimoController {
             this.emprestimoService.createEmprestimo(emprestimoInputDto);
             return ResponseEntity.status(HttpStatus.CREATED).build();
         } catch (HttpClientErrorException e) {
-            return ResponseEntity.status(e.getStatusCode()).body(new ErrorDto().wrap(e.getStatusText()));
+            return ResponseEntity.status(e.getStatusCode()).body(new ErrorOutputDto().wrap(e.getStatusText()));
         }
     }
 
     @PutMapping(path="/{id}")
-    public ResponseEntity<?> updateEmprestimo(@RequestBody Emprestimo emprestimo, @PathVariable Long id) {
+    public ResponseEntity<?> updateEmprestimo(@RequestBody EmprestimoUpdateInputDto emprestimoUpdateInputDto, @PathVariable Long id) {
         try {
-            return ResponseEntity.ok(this.emprestimoService.updateEmprestimo(emprestimo, id));
+            return ResponseEntity.ok(this.emprestimoService.updateEmprestimo(emprestimoUpdateInputDto, id));
         } catch (HttpClientErrorException e) {
-            return ResponseEntity.status(e.getStatusCode()).body(new ErrorDto().wrap(e.getStatusText()));
+            return ResponseEntity.status(e.getStatusCode()).body(new ErrorOutputDto().wrap(e.getStatusText()));
         }
     }
 

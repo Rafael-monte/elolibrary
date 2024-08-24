@@ -1,17 +1,14 @@
-package com.example.elolibrary.dto;
+package com.example.elolibrary.dto.output;
 
-import com.example.elolibrary.interfaces.Dto;
+import com.example.elolibrary.interfaces.OutputDto;
 import com.example.elolibrary.model.Usuario;
-import com.example.elolibrary.util.DateUtils;
-import com.example.elolibrary.util.ServiceUtils;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
 import java.time.LocalDate;
 
 @Data
 //@JsonIgnoreProperties(ignoreUnknown = true)
-public class UsuarioDto implements Dto<Usuario> {
+public class UsuarioOutputDto implements OutputDto<Usuario> {
     private Long id;
     private String nome;
     private String email;
@@ -19,7 +16,7 @@ public class UsuarioDto implements Dto<Usuario> {
     private String telefone;
 
     @Override
-    public Dto<Usuario> wrap(Usuario usuario) {
+    public OutputDto<Usuario> wrap(Usuario usuario) {
         this.id = usuario.getId();
         this.nome = usuario.getNome();
         this.email = usuario.getEmail();

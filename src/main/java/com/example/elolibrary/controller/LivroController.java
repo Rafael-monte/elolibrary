@@ -1,7 +1,8 @@
 package com.example.elolibrary.controller;
 
 
-import com.example.elolibrary.dto.ErrorDto;
+import com.example.elolibrary.dto.output.ErrorOutputDto;
+import com.example.elolibrary.dto.input.LivroInputDto;
 import com.example.elolibrary.model.Livro;
 import com.example.elolibrary.service.LivroService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,17 +32,17 @@ public class LivroController {
         try {
             return ResponseEntity.ok(this.livroService.findById(id));
         } catch (HttpClientErrorException e) {
-            return ResponseEntity.status(e.getStatusCode()).body(new ErrorDto().wrap(e.getStatusText()));
+            return ResponseEntity.status(e.getStatusCode()).body(new ErrorOutputDto().wrap(e.getStatusText()));
         }
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> save(@RequestBody Livro livro) {
+    public ResponseEntity<?> save(@RequestBody LivroInputDto livroInputDto) {
         try {
-            this.livroService.save(livro);
+            this.livroService.save(livroInputDto.toModel());
             return ResponseEntity.status(HttpStatus.CREATED).build();
         } catch (HttpClientErrorException e) {
-            return ResponseEntity.status(e.getStatusCode()).body(new ErrorDto().wrap(e.getStatusText()));
+            return ResponseEntity.status(e.getStatusCode()).body(new ErrorOutputDto().wrap(e.getStatusText()));
         }
     }
 
@@ -50,7 +51,7 @@ public class LivroController {
         try {
             return ResponseEntity.ok(this.livroService.update(livro, id));
         } catch (HttpClientErrorException e) {
-            return ResponseEntity.status(e.getStatusCode()).body(new ErrorDto().wrap(e.getStatusText()));
+            return ResponseEntity.status(e.getStatusCode()).body(new ErrorOutputDto().wrap(e.getStatusText()));
         }
     }
 
@@ -60,7 +61,7 @@ public class LivroController {
             this.livroService.deleteById(id);
             return ResponseEntity.noContent().build();
         } catch (HttpClientErrorException e) {
-            return ResponseEntity.status(e.getStatusCode()).body(new ErrorDto().wrap(e.getStatusText()));
+            return ResponseEntity.status(e.getStatusCode()).body(new ErrorOutputDto().wrap(e.getStatusText()));
         }
     }
 }

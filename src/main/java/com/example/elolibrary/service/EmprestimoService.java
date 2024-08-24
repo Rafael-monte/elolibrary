@@ -1,8 +1,9 @@
 package com.example.elolibrary.service;
 
-import com.example.elolibrary.dto.EmprestimoDto;
-import com.example.elolibrary.dto.EmprestimoInputDto;
-import com.example.elolibrary.interfaces.Dto;
+import com.example.elolibrary.dto.input.EmprestimoUpdateInputDto;
+import com.example.elolibrary.dto.output.EmprestimoOutputDto;
+import com.example.elolibrary.dto.input.EmprestimoInputDto;
+import com.example.elolibrary.interfaces.OutputDto;
 import com.example.elolibrary.model.Emprestimo;
 import com.example.elolibrary.model.Livro;
 import com.example.elolibrary.model.Usuario;
@@ -68,7 +69,7 @@ public class EmprestimoService {
     }
 
 
-    public Dto<Emprestimo> updateEmprestimo(Emprestimo emprestimo, Long emprestimoId) throws HttpClientErrorException.NotFound, HttpClientErrorException.BadRequest {
+    public OutputDto<Emprestimo> updateEmprestimo(EmprestimoUpdateInputDto emprestimo, Long emprestimoId) throws HttpClientErrorException.NotFound, HttpClientErrorException.BadRequest {
         Optional<Emprestimo> optEmprestimo = this.emprestimoRepository.findById(emprestimoId);
         if (optEmprestimo.isEmpty()) {
             throw new HttpClientErrorException(
@@ -82,9 +83,12 @@ public class EmprestimoService {
         }
         this.checkDataDevolucao(emprestimo.getDataDevolucao());
         this.checkDataEmprestimo(emprestimo.getDataEmprestimo(), emprestimo.getDataDevolucao());
-        emprestimo.setId(emprestimoId);
-        this.emprestimoRepository.saveAndFlush(emprestimo);
-        return new EmprestimoDto().wrap(emprestimo);
+        Emprestimo emprestimoDaBase = optEmprestimo.get();
+        emprestimoDaBase.setDataEmprestimo(emprestimo.getDataEmprestimo());
+        emprestimoDaBase.setDataDevolucao(emprestimo.getDataDevolucao());
+        emprestimoDaBase.setStatus(emprestimo.getStatus());
+        this.emprestimoRepository.saveAndFlush(emprestimoDaBase);
+        return new EmprestimoOutputDto().wrap(emprestimoDaBase);
     }
 
 
