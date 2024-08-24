@@ -20,7 +20,7 @@ public class Livro {
     @Column(name="autor")
     private String autor;
 
-    @Column(name="isbn")
+    @Column(name="isbn", unique = true)
     private String isbn;
 
     @Column(name="data_publicacao")
@@ -28,4 +28,7 @@ public class Livro {
 
     @Column(name="categoria")
     private String categoria;
+
+    @Column(name="ativo")
+    private Boolean ativo;
 }

@@ -9,8 +9,9 @@ import java.util.stream.Stream;
 @AllArgsConstructor
 @Getter
 public enum StatusEmprestimo {
-    EM_DIA("EM_DIA"),
-    VENCIDO("VENCIDO");
+    EM_USO("EM_USO"),
+    VENCIDO("VENCIDO"),
+    DEVOLVIDO("DEVOLVIDO");
 
     private final String value;
 

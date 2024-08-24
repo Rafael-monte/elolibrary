@@ -2,12 +2,11 @@ package com.example.elolibrary.controller;
 
 
 import com.example.elolibrary.dto.ErrorDto;
-import com.example.elolibrary.model.Usuario;
-import com.example.elolibrary.service.UsuarioService;
+import com.example.elolibrary.model.Livro;
+import com.example.elolibrary.service.LivroService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -15,50 +14,50 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 
 @RestController
-@RequestMapping("/api/usuarios")
-public class UsuarioController {
+@RequestMapping("/api/livros")
+public class LivroController {
 
     @Autowired
-    private UsuarioService usuarioService;
+    private LivroService livroService;
 
     @GetMapping
     public ResponseEntity<?> findAllByPage(@RequestParam(defaultValue = "0") Integer page, @RequestParam(defaultValue = "50") Integer size) {
         Pageable pageable = PageRequest.of(page, size);
-        return ResponseEntity.ok(this.usuarioService.findAllByPage(pageable));
+        return ResponseEntity.ok(this.livroService.findAllByPage(pageable));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> findById(@PathVariable Long id) {
         try {
-            return ResponseEntity.ok(this.usuarioService.findById(id));
+            return ResponseEntity.ok(this.livroService.findById(id));
         } catch (HttpClientErrorException e) {
             return ResponseEntity.status(e.getStatusCode()).body(new ErrorDto().wrap(e.getStatusText()));
         }
     }
 
-    @PostMapping()
-    public ResponseEntity<?> save(@RequestBody Usuario usuario) {
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> save(@RequestBody Livro livro) {
         try {
-            this.usuarioService.save(usuario);
+            this.livroService.save(livro);
             return ResponseEntity.status(HttpStatus.CREATED).build();
         } catch (HttpClientErrorException e) {
             return ResponseEntity.status(e.getStatusCode()).body(new ErrorDto().wrap(e.getStatusText()));
         }
     }
 
-    @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody Usuario usuario) {
+    @PutMapping(path="/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody Livro livro) {
         try {
-            return ResponseEntity.ok(this.usuarioService.update(usuario, id));
+            return ResponseEntity.ok(this.livroService.update(livro, id));
         } catch (HttpClientErrorException e) {
             return ResponseEntity.status(e.getStatusCode()).body(new ErrorDto().wrap(e.getStatusText()));
         }
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping(path="/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id) {
         try {
-            this.usuarioService.deleteById(id);
+            this.livroService.deleteById(id);
             return ResponseEntity.noContent().build();
         } catch (HttpClientErrorException e) {
             return ResponseEntity.status(e.getStatusCode()).body(new ErrorDto().wrap(e.getStatusText()));
