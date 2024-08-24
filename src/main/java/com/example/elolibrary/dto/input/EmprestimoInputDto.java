@@ -10,12 +10,12 @@ import java.time.LocalDate;
 
 @Data
 public class EmprestimoInputDto {
-    @NotBlank(message = "O email é obrigatório")
+    @NotBlank(message = "Email obrigatorio")
     @Email
     private String emailUsuario;
-    @NotBlank(message = "O ISBN do livro é obrigatório")
+    @NotBlank(message = "ISBN do livro obrigatorio")
     @ValidISBN
     private String isbnLivro;
-    @NotNull(message = "A data de devolução é obrigatória")
+    @NotNull(message = "Data de devolução obrigatoria")
     private LocalDate dataDevolucao;
 }

@@ -12,16 +12,14 @@ import java.time.LocalDate;
 
 @Data
 public class UsuarioInputDto implements InputDto<Usuario> {
-    @NotBlank(message="O email é obrigatório")
-    @Email
+    @NotBlank(message="Email obrigatório")
+    @Email(message="Email invalido informado")
     private String email;
-    @NotBlank(message="O nome é obrigatório")
+    @NotBlank(message="Nome e obrigatorio")
     private String nome;
-    @NotBlank(message="A senha é obrigatória")
+    @NotBlank(message="Senha obrigatoria")
     private String senha;
-    @NotNull(message="A data de cadastro é obrigatória")
-    private LocalDate dataCadastro;
-    @NotBlank(message="O telefone é obrigatório")
+    @NotBlank(message="Telefone obrigatorio")
     @ValidBrazilianPhone
     private String telefone;
 
@@ -31,7 +29,6 @@ public class UsuarioInputDto implements InputDto<Usuario> {
         usuario.setEmail(email);
         usuario.setNome(nome);
         usuario.setSenha(senha);
-        usuario.setDataCadastro(dataCadastro);
         usuario.setTelefone(telefone);
         return usuario;
     }

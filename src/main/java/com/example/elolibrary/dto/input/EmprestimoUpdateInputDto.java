@@ -13,10 +13,10 @@ import java.time.LocalDate;
 
 @Data
 public class EmprestimoUpdateInputDto {
-    @NotNull(message="A data de devolução é obrigatória")
+    @NotNull(message="Data de devolução obrigatoria")
     private LocalDate dataDevolucao;
-    @NotNull(message="A data de emprestimo é obrigatória")
+    @NotNull(message="Data de emprestimo obrigatoria")
     private LocalDate dataEmprestimo;
-    @NotNull(message = "O status do emprestimo é obrigatório")
+    @NotNull(message = "Status do emprestimo obrigatório")
     private StatusEmprestimo status;
 }

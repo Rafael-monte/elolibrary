@@ -11,16 +11,16 @@ import java.time.LocalDate;
 @Data
 public class LivroInputDto implements InputDto<Livro> {
 
-    @NotBlank(message="O título é obrigatório")
+    @NotBlank(message="Titulo obrigatorio")
     private String titulo;
-    @NotBlank(message="O autor é obrigatório")
+    @NotBlank(message="Autor obrigatorio")
     private String autor;
-    @NotBlank(message = "O ISBN é obrigatório")
+    @NotBlank(message = "ISBN obrigatorio")
     @ValidISBN
     private String isbn;
-    @NotBlank(message = "A categoria é obrigatória")
+    @NotBlank(message = "Categoria obrigatoria")
     private String categoria;
-    @NotBlank(message="A data de publicação é obrigatória")
+    @NotBlank(message="Data de publicacao obrigatoria")
     private LocalDate dataPublicacao;
 
     @Override

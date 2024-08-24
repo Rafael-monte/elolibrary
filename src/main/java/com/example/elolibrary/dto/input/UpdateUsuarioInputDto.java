@@ -8,11 +8,11 @@ import lombok.Data;
 
 @Data
 public class UpdateUsuarioInputDto implements InputDto<Usuario> {
-    @NotBlank(message="O nome é obrigatório")
+    @NotBlank(message="Nome obrigatorio")
     private String nome;
-    @NotBlank(message="A senha é obrigatória")
+    @NotBlank(message="Senha obrigatoria")
     private String senha;
-    @NotBlank(message="O telefone é obrigatório")
+    @NotBlank(message="Telefone obrigatório")
     @ValidBrazilianPhone
     private String telefone;
 

@@ -7,7 +7,6 @@ import lombok.Data;
 import java.time.LocalDate;
 
 @Data
-//@JsonIgnoreProperties(ignoreUnknown = true)
 public class UsuarioOutputDto implements OutputDto<Usuario> {
     private Long id;
     private String nome;
