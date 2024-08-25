@@ -1,8 +1,9 @@
 package com.example.elolibrary.service;
 
-import com.example.elolibrary.dto.EmprestimoDto;
-import com.example.elolibrary.dto.EmprestimoInputDto;
-import com.example.elolibrary.interfaces.Dto;
+import com.example.elolibrary.dto.input.EmprestimoUpdateInputDto;
+import com.example.elolibrary.dto.output.EmprestimoOutputDto;
+import com.example.elolibrary.dto.input.EmprestimoInputDto;
+import com.example.elolibrary.interfaces.OutputDto;
 import com.example.elolibrary.model.Emprestimo;
 import com.example.elolibrary.model.Livro;
 import com.example.elolibrary.model.Usuario;
@@ -27,15 +28,19 @@ public class EmprestimoService {
 
     @Autowired
     private EmprestimoRepository emprestimoRepository;
+
+    @Autowired
     private UsuarioRepository usuarioRepository;
+
+    @Autowired
     private LivroRepository livroRepository;
 
     private static final String ENTIDADE_SERVICE="Emprestimo";
 
     public void createEmprestimo(EmprestimoInputDto emprestimoInputDto) throws HttpClientErrorException.BadRequest {
         this.checkDataDevolucao(emprestimoInputDto.getDataDevolucao());
-        Optional<Usuario> optUsuario = this.usuarioRepository.findByEmail(emprestimoInputDto.getEmailUsuario());
-        Optional<Livro> optLivro = this.livroRepository.findByIsbn(emprestimoInputDto.getIsbnLivro());
+        Optional<Usuario> optUsuario = this.usuarioRepository.findByEmailAndAtivoTrue(emprestimoInputDto.getEmailUsuario());
+        Optional<Livro> optLivro = this.livroRepository.findByIsbnAndAtivoTrue(emprestimoInputDto.getIsbnLivro());
         if (optUsuario.isEmpty()) {
             throw new HttpClientErrorException(
                     HttpStatus.NOT_FOUND,
@@ -68,7 +73,9 @@ public class EmprestimoService {
     }
 
 
-    public Dto<Emprestimo> updateEmprestimo(Emprestimo emprestimo, Long emprestimoId) throws HttpClientErrorException.NotFound, HttpClientErrorException.BadRequest {
+    public OutputDto<Emprestimo> updateEmprestimo(EmprestimoUpdateInputDto emprestimo, Long emprestimoId) throws HttpClientErrorException.NotFound, HttpClientErrorException.BadRequest {
+        this.checkDataDevolucao(emprestimo.getDataDevolucao());
+        this.checkDataEmprestimo(emprestimo.getDataEmprestimo(), emprestimo.getDataDevolucao());
         Optional<Emprestimo> optEmprestimo = this.emprestimoRepository.findById(emprestimoId);
         if (optEmprestimo.isEmpty()) {
             throw new HttpClientErrorException(
@@ -80,16 +87,17 @@ public class EmprestimoService {
                     )
             );
         }
-        this.checkDataDevolucao(emprestimo.getDataDevolucao());
-        this.checkDataEmprestimo(emprestimo.getDataEmprestimo(), emprestimo.getDataDevolucao());
-        emprestimo.setId(emprestimoId);
-        this.emprestimoRepository.saveAndFlush(emprestimo);
-        return new EmprestimoDto().wrap(emprestimo);
+        Emprestimo emprestimoDaBase = optEmprestimo.get();
+        emprestimoDaBase.setDataEmprestimo(emprestimo.getDataEmprestimo());
+        emprestimoDaBase.setDataDevolucao(emprestimo.getDataDevolucao());
+        emprestimoDaBase.setStatus(emprestimo.getStatus());
+        this.emprestimoRepository.saveAndFlush(emprestimoDaBase);
+        return new EmprestimoOutputDto().wrap(emprestimoDaBase);
     }
 
 
     private void markEmprestimoAsVencido(Emprestimo emprestimo) {
-        emprestimo.setStatus(StatusEmprestimo.VENCIDO);
+        emprestimo.setStatus(StatusEmprestimo.ATRASADO);
         this.emprestimoRepository.saveAndFlush(emprestimo);
     }
 
@@ -98,7 +106,7 @@ public class EmprestimoService {
                 livroEmprestimo,
                 List.of(
                         StatusEmprestimo.EM_USO,
-                        StatusEmprestimo.VENCIDO
+                        StatusEmprestimo.ATRASADO
                 )
         );
         if (optEmprestimo.isPresent()) {
@@ -111,7 +119,7 @@ public class EmprestimoService {
                     ServiceUtils.createExceptionMessage(
                             MessageTemplate.BOOK_LOAN_ALREADY_EXISTS,
                             DateUtils.dateToDDMMYYYY(emprestimoJaFeito.getDataDevolucao()),
-                            emprestimoJaFeito.getStatus().equals(StatusEmprestimo.VENCIDO)?
+                            emprestimoJaFeito.getStatus().equals(StatusEmprestimo.ATRASADO)?
                                     "- Vencido":
                                     ""
 
@@ -123,7 +131,7 @@ public class EmprestimoService {
     private void checkDataDevolucao(LocalDate dataDevolucao) throws HttpClientErrorException.BadRequest {
         if (dataDevolucao.isBefore(LocalDate.now())) {
             throw new HttpClientErrorException(
-                    HttpStatus.NOT_FOUND,
+                    HttpStatus.BAD_REQUEST,
                     ServiceUtils.createExceptionMessage(
                             MessageTemplate.DEVOLUTION_DATE_BEFORE_CURRENT_DATE,
                             DateUtils.dateToDDMMYYYY(dataDevolucao)
@@ -133,9 +141,9 @@ public class EmprestimoService {
     }
 
     private void checkDataEmprestimo(LocalDate dataEmprestimo, LocalDate dataDevolucao) throws HttpClientErrorException.BadRequest {
-        if (dataEmprestimo.isBefore(LocalDate.now())) {
+        if (dataEmprestimo.isAfter(LocalDate.now())) {
             throw new HttpClientErrorException(
-                    HttpStatus.NOT_FOUND,
+                    HttpStatus.BAD_REQUEST,
                     ServiceUtils.createExceptionMessage(
                             MessageTemplate.LOAN_DATE_AFTER_CURRENT_DATE,
                             DateUtils.dateToDDMMYYYY(dataEmprestimo)
@@ -143,15 +151,34 @@ public class EmprestimoService {
             );
         }
 
-        if (dataEmprestimo.isBefore(LocalDate.now())) {
+        if (dataEmprestimo.isAfter(dataDevolucao)) {
             throw new HttpClientErrorException(
-                    HttpStatus.NOT_FOUND,
+                    HttpStatus.BAD_REQUEST,
                     ServiceUtils.createExceptionMessage(
                             MessageTemplate.LOAN_DATE_AFTER_DEVOLUTION_DATE,
                             DateUtils.dateToDDMMYYYY(dataEmprestimo),
                             DateUtils.dateToDDMMYYYY(dataDevolucao)
                     )
             );
+        }
+    }
+
+    public void devolverEmprestimo(Long emprestimoId) {
+        Optional<Emprestimo> optEmprestimo = this.emprestimoRepository.findById(emprestimoId);
+        if (optEmprestimo.isEmpty()) {
+            throw new HttpClientErrorException(
+                    HttpStatus.NOT_FOUND,
+                    ServiceUtils.createExceptionMessage(
+                            MessageTemplate.ENTITY_NOT_FOUND,
+                            ENTIDADE_SERVICE,
+                            emprestimoId.toString()
+                    )
+            );
+        }
+        Emprestimo emprestimoJaFeito = optEmprestimo.get();
+        if (!emprestimoJaFeito.getStatus().equals(StatusEmprestimo.DEVOLVIDO)) {
+            emprestimoJaFeito.setStatus(StatusEmprestimo.DEVOLVIDO);
+            this.emprestimoRepository.saveAndFlush(emprestimoJaFeito);
         }
     }
 

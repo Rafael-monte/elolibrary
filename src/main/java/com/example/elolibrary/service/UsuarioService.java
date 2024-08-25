@@ -1,8 +1,8 @@
 package com.example.elolibrary.service;
 
-import com.example.elolibrary.dto.UsuarioDto;
+import com.example.elolibrary.dto.output.UsuarioOutputDto;
 import com.example.elolibrary.interfaces.CRUDService;
-import com.example.elolibrary.interfaces.Dto;
+import com.example.elolibrary.interfaces.OutputDto;
 import com.example.elolibrary.model.Usuario;
 import com.example.elolibrary.model.enumeration.Role;
 import com.example.elolibrary.repository.UsuarioRepository;
@@ -22,10 +22,9 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.regex.Pattern;
 
 @Service
-public class UsuarioService implements CRUDService<Usuario, UsuarioDto> {
+public class UsuarioService implements CRUDService<Usuario, UsuarioOutputDto> {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
@@ -33,16 +32,16 @@ public class UsuarioService implements CRUDService<Usuario, UsuarioDto> {
     private static final String ENTIDADE_SERVICE="Usuario";
 
     @Override
-    public Page<Dto<Usuario>> findAllByPage(Pageable pageable) {
-        List<Dto<Usuario>> pageUser = usuarioRepository.findAllByAtivoTrue(pageable)
+    public Page<OutputDto<Usuario>> findAllByPage(Pageable pageable) {
+        List<OutputDto<Usuario>> pageUser = usuarioRepository.findAllByAtivoTrue(pageable)
                 .stream()
-                .map(usr -> new UsuarioDto().wrap(usr))
+                .map(usr -> new UsuarioOutputDto().wrap(usr))
                 .toList();
         return new PageImpl<>(pageUser, pageable, pageUser.size());
     }
 
     @Override
-    public Dto<Usuario> findById(Long id) throws HttpClientErrorException.NotFound {
+    public OutputDto<Usuario> findById(Long id) throws HttpClientErrorException.NotFound {
         Optional<Usuario> optUsuario = this.usuarioRepository.findById(id);
         if (optUsuario.isEmpty()) {
             throw new HttpClientErrorException(
@@ -52,18 +51,14 @@ public class UsuarioService implements CRUDService<Usuario, UsuarioDto> {
                     )
             );
         }
-        return new UsuarioDto().wrap(optUsuario.get());
+        return new UsuarioOutputDto().wrap(optUsuario.get());
     }
 
     @Override
     public void save(Usuario usuario) throws HttpClientErrorException.BadRequest {
-        this.checkIfFieldIsEmpty(usuario.getNome(), "Nome");
-        this.checkIfFieldIsEmpty(usuario.getSenha(), "Senha");
-        this.checkIfFieldIsEmpty(usuario.getEmail(), "Email");
-        this.checkIfFieldIsEmpty(usuario.getTelefone(), "Telefone");
-        this.checkEmailPattern(usuario.getEmail());
+        String telefoneFormatado = formatTelefone(usuario.getTelefone());
         this.checkIfEmailIsBeingUsed(usuario.getEmail());
-        this.checkTelefonePattern(usuario.getTelefone());
+        this.checkIfTelefoneIsBeingUsed(telefoneFormatado);
         usuario.setDataCadastro(LocalDate.now());
         try {
             usuario.setSenha(
@@ -77,15 +72,13 @@ public class UsuarioService implements CRUDService<Usuario, UsuarioDto> {
         }
         usuario.setRole(Role.USER);
         usuario.setAtivo(true);
+        usuario.setTelefone(telefoneFormatado);
         this.usuarioRepository.saveAndFlush(usuario);
     }
 
     @Override
-    public Dto<Usuario> update(Usuario usuario, Long usuarioId) throws HttpClientErrorException.BadRequest, HttpClientErrorException.NotFound {
-        this.checkIfFieldIsEmpty(usuario.getNome(), "Nome");
-        this.checkIfFieldIsEmpty(usuario.getSenha(), "Senha");
-        this.checkEmailPattern(usuario.getEmail());
-        this.checkTelefonePattern(usuario.getTelefone());
+    public OutputDto<Usuario> update(Usuario usuario, Long usuarioId) throws HttpClientErrorException.BadRequest, HttpClientErrorException.NotFound {
+        String telefoneFormatado = formatTelefone(usuario.getTelefone());
         Optional<Usuario> optUsuario = this.usuarioRepository.findById(usuarioId);
         if (optUsuario.isEmpty()) {
             throw new HttpClientErrorException(
@@ -111,13 +104,13 @@ public class UsuarioService implements CRUDService<Usuario, UsuarioDto> {
                     ServiceUtils.createExceptionMessage(MessageTemplate.COULD_NOT_ENCRYPT_PASSWORD)
             );
         }
-        this.checkIfNewTelefoneIsBeingUsed(usuario.getTelefone(), usuarioId);
+        this.checkIfNewTelefoneIsBeingUsed(telefoneFormatado, usuarioId);
         Usuario usuarioBase = optUsuario.get();
         usuarioBase.setSenha(usuario.getSenha());
         usuarioBase.setNome(usuario.getNome());
-        usuarioBase.setTelefone(usuario.getTelefone());
+        usuarioBase.setTelefone(telefoneFormatado);
         this.usuarioRepository.saveAndFlush(usuarioBase);
-        return new UsuarioDto().wrap(usuarioBase);
+        return new UsuarioOutputDto().wrap(usuarioBase);
     }
 
     @Override
@@ -135,63 +128,12 @@ public class UsuarioService implements CRUDService<Usuario, UsuarioDto> {
         }
         Usuario usuario = optUsuario.get();
         usuario.setAtivo(false);
+        usuario.setEmail(null);
+        usuario.setTelefone(null);
         this.usuarioRepository.saveAndFlush(usuario);
     }
 
-    private void checkIfFieldIsEmpty(String field, final String FIELD_NAME) throws HttpClientErrorException.BadRequest {
-        if (ServiceUtils.isFalsyString(field)) {
-            throw new HttpClientErrorException(
-                    HttpStatus.BAD_REQUEST,
-                    ServiceUtils.createExceptionMessage(
-                            MessageTemplate.NULL_FIELD,
-                            FIELD_NAME
-                    )
-            );
-        }
-    }
-
-
-    private void checkEmailPattern(String emailUsuario) throws HttpClientErrorException.BadRequest {
-        final String EMAIL_PATTERN = "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@"
-                + "[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
-        Pattern emailPattern = Pattern.compile(EMAIL_PATTERN);
-        if (!emailPattern.matcher(emailUsuario).matches()) {
-            throw new HttpClientErrorException(
-                    HttpStatus.BAD_REQUEST,
-                    ServiceUtils.createExceptionMessage(
-                            MessageTemplate.INVALID_EMAIL,
-                            emailUsuario
-                    )
-            );
-        }
-    }
-
-
-    //REFERENCIA: https://medium.com/@igorrozani/criando-uma-express%C3%A3o-regular-para-telefone-fef7a8f98828
-    private void checkTelefonePattern(String telefoneUsuario) {
-        final String TELEFONE_PATTERN = "(\\(?\\d{2}\\)?\\s)?(\\d{4,5}\\-\\d{4})";
-        Pattern patternPhone = Pattern.compile(TELEFONE_PATTERN);
-        if (!patternPhone.matcher(telefoneUsuario).matches()) {
-            throw new HttpClientErrorException(
-                    HttpStatus.BAD_REQUEST,
-                    ServiceUtils.createExceptionMessage(
-                            MessageTemplate.INVALID_PHONE,
-                            telefoneUsuario
-                    )
-            );
-        }
-    }
-
     private void checkDataCadastro(LocalDate dataCadastro) throws HttpClientErrorException.BadRequest {
-        if (dataCadastro == null) {
-            throw new HttpClientErrorException(
-                    HttpStatus.BAD_REQUEST,
-                    ServiceUtils.createExceptionMessage(
-                            MessageTemplate.NULL_FIELD,
-                            "Data Cadastro"
-                    )
-            );
-        }
         if (dataCadastro.isAfter(LocalDate.now())) {
             throw new HttpClientErrorException(
                     HttpStatus.BAD_REQUEST,
@@ -204,7 +146,7 @@ public class UsuarioService implements CRUDService<Usuario, UsuarioDto> {
     }
 
     private void checkIfEmailIsBeingUsed(String email) throws HttpClientErrorException.BadRequest {
-        Optional<Usuario> emailUser = this.usuarioRepository.findByEmail(email);
+        Optional<Usuario> emailUser = this.usuarioRepository.findByEmailAndAtivoTrue(email);
         if (emailUser.isPresent()) {
             throw new HttpClientErrorException(
                     HttpStatus.BAD_REQUEST,
@@ -216,8 +158,21 @@ public class UsuarioService implements CRUDService<Usuario, UsuarioDto> {
         }
     }
 
+    private void checkIfTelefoneIsBeingUsed(String telefone) throws HttpClientErrorException.BadRequest {
+        Optional<Usuario> optUsuarioTelefone = this.usuarioRepository.findByTelefoneAndAtivoTrue(telefone);
+        if (optUsuarioTelefone.isPresent()) {
+            throw new HttpClientErrorException(
+                    HttpStatus.BAD_REQUEST,
+                    ServiceUtils.createExceptionMessage(
+                            MessageTemplate.PHONE_ALREADY_IN_USE,
+                            telefone
+                    )
+            );
+        }
+    }
+
     private void checkIfNewTelefoneIsBeingUsed(String newTelefone, Long userId) throws HttpClientErrorException.BadRequest {
-        Optional<Usuario> optUsuarioTelefone = this.usuarioRepository.findByTelefone(newTelefone);
+        Optional<Usuario> optUsuarioTelefone = this.usuarioRepository.findByTelefoneAndAtivoTrue(newTelefone);
         if (optUsuarioTelefone.isPresent() && !Objects.equals(optUsuarioTelefone.get().getId(), userId)) {
             throw new HttpClientErrorException(
                     HttpStatus.BAD_REQUEST,
@@ -227,6 +182,14 @@ public class UsuarioService implements CRUDService<Usuario, UsuarioDto> {
                     )
             );
         }
+    }
+
+    private String formatTelefone(String telefone) {
+        return telefone.replace("(", "")
+                .replace(")", "")
+                .replace("+55", "")
+                .replace("-", "")
+                .replace(" ", "");
     }
 
 }

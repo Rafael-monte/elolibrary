@@ -1,6 +1,6 @@
-package com.example.elolibrary.dto;
+package com.example.elolibrary.dto.output;
 
-import com.example.elolibrary.interfaces.Dto;
+import com.example.elolibrary.interfaces.OutputDto;
 import com.example.elolibrary.model.Emprestimo;
 import com.example.elolibrary.model.enumeration.StatusEmprestimo;
 import lombok.Data;
@@ -8,11 +8,11 @@ import lombok.Data;
 import java.time.LocalDate;
 
 @Data
-public class EmprestimoDto implements Dto<Emprestimo> {
+public class EmprestimoOutputDto implements OutputDto<Emprestimo> {
 
     private Long id;
-    private UsuarioDto usuario;
-    private LivroDto livro;
+    private UsuarioOutputDto usuario;
+    private LivroOutputDto livro;
     private LocalDate dataDevolucao;
     private LocalDate dataEmprestimo;
     private StatusEmprestimo status;
@@ -20,10 +20,10 @@ public class EmprestimoDto implements Dto<Emprestimo> {
 
 
     @Override
-    public Dto<Emprestimo> wrap(Emprestimo emprestimo) {
+    public OutputDto<Emprestimo> wrap(Emprestimo emprestimo) {
         this.id = emprestimo.getId();
-        this.usuario = (UsuarioDto) new UsuarioDto().wrap(emprestimo.getUsuario());
-        this.livro = (LivroDto) new LivroDto().wrap(emprestimo.getLivro());
+        this.usuario = (UsuarioOutputDto) new UsuarioOutputDto().wrap(emprestimo.getUsuario());
+        this.livro = (LivroOutputDto) new LivroOutputDto().wrap(emprestimo.getLivro());
         this.dataDevolucao = emprestimo.getDataDevolucao();
         this.dataEmprestimo = emprestimo.getDataEmprestimo();
         this.status = emprestimo.getStatus();

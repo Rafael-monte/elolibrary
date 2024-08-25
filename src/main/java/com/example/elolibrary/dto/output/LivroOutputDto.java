@@ -1,18 +1,13 @@
-package com.example.elolibrary.dto;
+package com.example.elolibrary.dto.output;
 
-import com.example.elolibrary.interfaces.Dto;
+import com.example.elolibrary.interfaces.OutputDto;
 import com.example.elolibrary.model.Livro;
-import com.example.elolibrary.util.DateUtils;
-import com.example.elolibrary.util.ServiceUtils;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
 import java.time.LocalDate;
 
 @Data
-//@JsonIgnoreProperties(ignoreUnknown = true)
-public class LivroDto implements Dto<Livro> {
-
+public class LivroOutputDto implements OutputDto<Livro> {
     private Long id;
     private String titulo;
     private String autor;
@@ -21,7 +16,7 @@ public class LivroDto implements Dto<Livro> {
     private String categoria;
 
     @Override
-    public Dto<Livro> wrap(Livro livro) {
+    public OutputDto<Livro> wrap(Livro livro) {
         this.autor = livro.getAutor();
         this.id = livro.getId();
         this.titulo = livro.getTitulo();

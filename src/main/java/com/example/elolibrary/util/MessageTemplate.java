@@ -7,7 +7,7 @@ import lombok.Getter;
 @Getter
 public enum MessageTemplate {
 
-    ENTITY_NOT_FOUND("Não foi possível encontrar o [%s] de id [%d]"),
+    ENTITY_NOT_FOUND("Não foi possível encontrar o [%s] de id [%s]"),
     INVALID_EMAIL("O email [%s] fornecido não dentro do formato padrão"),
     EMAIL_ALREADY_IN_USE("O email [%s] já está sendo utilizado."),
     EMAIL_NOT_FOUND("Não foi possível encontrar o email [%s]"),
