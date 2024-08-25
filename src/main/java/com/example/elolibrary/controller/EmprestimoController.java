@@ -42,6 +42,16 @@ public class EmprestimoController {
         }
     }
 
+    @PatchMapping(path="/devolver/{id}")
+    public ResponseEntity<?> devolverEmprestimo(@Valid @PathVariable Long id) {
+        try {
+            this.emprestimoService.devolverEmprestimo(id);
+            return ResponseEntity.noContent().build();
+        } catch (HttpClientErrorException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(new ErrorOutputDto().wrap(e.getStatusText()));
+        }
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();

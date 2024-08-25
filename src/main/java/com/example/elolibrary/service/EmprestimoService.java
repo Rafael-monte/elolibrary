@@ -28,7 +28,11 @@ public class EmprestimoService {
 
     @Autowired
     private EmprestimoRepository emprestimoRepository;
+
+    @Autowired
     private UsuarioRepository usuarioRepository;
+
+    @Autowired
     private LivroRepository livroRepository;
 
     private static final String ENTIDADE_SERVICE="Emprestimo";
@@ -70,6 +74,8 @@ public class EmprestimoService {
 
 
     public OutputDto<Emprestimo> updateEmprestimo(EmprestimoUpdateInputDto emprestimo, Long emprestimoId) throws HttpClientErrorException.NotFound, HttpClientErrorException.BadRequest {
+        this.checkDataDevolucao(emprestimo.getDataDevolucao());
+        this.checkDataEmprestimo(emprestimo.getDataEmprestimo(), emprestimo.getDataDevolucao());
         Optional<Emprestimo> optEmprestimo = this.emprestimoRepository.findById(emprestimoId);
         if (optEmprestimo.isEmpty()) {
             throw new HttpClientErrorException(
@@ -81,8 +87,6 @@ public class EmprestimoService {
                     )
             );
         }
-        this.checkDataDevolucao(emprestimo.getDataDevolucao());
-        this.checkDataEmprestimo(emprestimo.getDataEmprestimo(), emprestimo.getDataDevolucao());
         Emprestimo emprestimoDaBase = optEmprestimo.get();
         emprestimoDaBase.setDataEmprestimo(emprestimo.getDataEmprestimo());
         emprestimoDaBase.setDataDevolucao(emprestimo.getDataDevolucao());
@@ -127,7 +131,7 @@ public class EmprestimoService {
     private void checkDataDevolucao(LocalDate dataDevolucao) throws HttpClientErrorException.BadRequest {
         if (dataDevolucao.isBefore(LocalDate.now())) {
             throw new HttpClientErrorException(
-                    HttpStatus.NOT_FOUND,
+                    HttpStatus.BAD_REQUEST,
                     ServiceUtils.createExceptionMessage(
                             MessageTemplate.DEVOLUTION_DATE_BEFORE_CURRENT_DATE,
                             DateUtils.dateToDDMMYYYY(dataDevolucao)
@@ -137,9 +141,9 @@ public class EmprestimoService {
     }
 
     private void checkDataEmprestimo(LocalDate dataEmprestimo, LocalDate dataDevolucao) throws HttpClientErrorException.BadRequest {
-        if (dataEmprestimo.isBefore(LocalDate.now())) {
+        if (dataEmprestimo.isAfter(LocalDate.now())) {
             throw new HttpClientErrorException(
-                    HttpStatus.NOT_FOUND,
+                    HttpStatus.BAD_REQUEST,
                     ServiceUtils.createExceptionMessage(
                             MessageTemplate.LOAN_DATE_AFTER_CURRENT_DATE,
                             DateUtils.dateToDDMMYYYY(dataEmprestimo)
@@ -147,15 +151,34 @@ public class EmprestimoService {
             );
         }
 
-        if (dataEmprestimo.isBefore(LocalDate.now())) {
+        if (dataEmprestimo.isAfter(dataDevolucao)) {
             throw new HttpClientErrorException(
-                    HttpStatus.NOT_FOUND,
+                    HttpStatus.BAD_REQUEST,
                     ServiceUtils.createExceptionMessage(
                             MessageTemplate.LOAN_DATE_AFTER_DEVOLUTION_DATE,
                             DateUtils.dateToDDMMYYYY(dataEmprestimo),
                             DateUtils.dateToDDMMYYYY(dataDevolucao)
                     )
             );
+        }
+    }
+
+    public void devolverEmprestimo(Long emprestimoId) {
+        Optional<Emprestimo> optEmprestimo = this.emprestimoRepository.findById(emprestimoId);
+        if (optEmprestimo.isEmpty()) {
+            throw new HttpClientErrorException(
+                    HttpStatus.NOT_FOUND,
+                    ServiceUtils.createExceptionMessage(
+                            MessageTemplate.ENTITY_NOT_FOUND,
+                            ENTIDADE_SERVICE,
+                            emprestimoId.toString()
+                    )
+            );
+        }
+        Emprestimo emprestimoJaFeito = optEmprestimo.get();
+        if (!emprestimoJaFeito.getStatus().equals(StatusEmprestimo.DEVOLVIDO)) {
+            emprestimoJaFeito.setStatus(StatusEmprestimo.DEVOLVIDO);
+            this.emprestimoRepository.saveAndFlush(emprestimoJaFeito);
         }
     }
 

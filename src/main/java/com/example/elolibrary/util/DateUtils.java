@@ -6,7 +6,7 @@ import java.time.format.DateTimeFormatter;
 
 public class DateUtils {
     public static String dateToDDMMYYYY(LocalDate date) {
-        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         return formatter.format(date);
     }
 
