@@ -10,7 +10,7 @@ import java.util.stream.Stream;
 @Getter
 public enum StatusEmprestimo {
     EM_USO("EM_USO"),
-    VENCIDO("VENCIDO"),
+    ATRASADO("VENCIDO"),
     DEVOLVIDO("DEVOLVIDO");
 
     private final String value;

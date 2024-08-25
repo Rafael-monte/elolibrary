@@ -20,11 +20,11 @@ public class Emprestimo {
     @Column(name = "emprestimo_id")
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name="usuario_id")
     private Usuario usuario;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name="livro_id")
     private Livro livro;
 

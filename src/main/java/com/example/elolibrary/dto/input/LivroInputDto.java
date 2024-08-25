@@ -2,9 +2,10 @@ package com.example.elolibrary.dto.input;
 
 import com.example.elolibrary.interfaces.InputDto;
 import com.example.elolibrary.model.Livro;
-import com.example.elolibrary.validators.ValidISBN;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import org.hibernate.validator.constraints.ISBN;
 
 import java.time.LocalDate;
 
@@ -16,11 +17,11 @@ public class LivroInputDto implements InputDto<Livro> {
     @NotBlank(message="Autor obrigatorio")
     private String autor;
     @NotBlank(message = "ISBN obrigatorio")
-    @ValidISBN
+    @ISBN(message="ISBN invalido informado")
     private String isbn;
     @NotBlank(message = "Categoria obrigatoria")
     private String categoria;
-    @NotBlank(message="Data de publicacao obrigatoria")
+    @NotNull(message="Data de publicacao obrigatoria")
     private LocalDate dataPublicacao;
 
     @Override

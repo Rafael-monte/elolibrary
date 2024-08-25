@@ -95,6 +95,7 @@ public class LivroService implements CRUDService<Livro, OutputDto<Livro>> {
         }
         Livro livro = optLivro.get();
         livro.setAtivo(false);
+        livro.setIsbn(null);
         this.livroRepository.saveAndFlush(livro);
     }
 
@@ -122,7 +123,7 @@ public class LivroService implements CRUDService<Livro, OutputDto<Livro>> {
     }
 
     private void checkIfISBNIsBeingUsed(String isbn, Long livroId) throws HttpClientErrorException.BadRequest {
-        Optional<Livro> optLivro = this.livroRepository.findByIsbn(isbn);
+        Optional<Livro> optLivro = this.livroRepository.findByIsbnAndAtivoTrue(isbn);
         if (optLivro.isPresent() && !optLivro.get().getId().equals(livroId)) {
             throw new HttpClientErrorException(
                     HttpStatus.BAD_REQUEST,

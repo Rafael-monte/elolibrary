@@ -29,7 +29,7 @@ public class Usuario {
     @Column(name="data_cadastro")
     private LocalDate dataCadastro;
 
-    @Column(name="telefone")
+    @Column(name="telefone", unique = true)
     private String telefone;
 
     @Column(name="senha")

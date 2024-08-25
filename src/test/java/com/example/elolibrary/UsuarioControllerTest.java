@@ -47,9 +47,6 @@ public class UsuarioControllerTest {
     @Mock
     private UsuarioService usuarioService;
 
-    @Mock
-    private BindingResult bindingResult;
-
     @Autowired
     private WebApplicationContext context;
 

@@ -1,10 +1,10 @@
 package com.example.elolibrary.dto.input;
 
-import com.example.elolibrary.validators.ValidISBN;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import org.hibernate.validator.constraints.ISBN;
 
 import java.time.LocalDate;
 
@@ -14,7 +14,7 @@ public class EmprestimoInputDto {
     @Email
     private String emailUsuario;
     @NotBlank(message = "ISBN do livro obrigatorio")
-    @ValidISBN
+    @ISBN(message="ISBN invalido informado")
     private String isbnLivro;
     @NotNull(message = "Data de devolução obrigatoria")
     private LocalDate dataDevolucao;

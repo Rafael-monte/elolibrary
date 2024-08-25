@@ -35,8 +35,8 @@ public class EmprestimoService {
 
     public void createEmprestimo(EmprestimoInputDto emprestimoInputDto) throws HttpClientErrorException.BadRequest {
         this.checkDataDevolucao(emprestimoInputDto.getDataDevolucao());
-        Optional<Usuario> optUsuario = this.usuarioRepository.findByEmail(emprestimoInputDto.getEmailUsuario());
-        Optional<Livro> optLivro = this.livroRepository.findByIsbn(emprestimoInputDto.getIsbnLivro());
+        Optional<Usuario> optUsuario = this.usuarioRepository.findByEmailAndAtivoTrue(emprestimoInputDto.getEmailUsuario());
+        Optional<Livro> optLivro = this.livroRepository.findByIsbnAndAtivoTrue(emprestimoInputDto.getIsbnLivro());
         if (optUsuario.isEmpty()) {
             throw new HttpClientErrorException(
                     HttpStatus.NOT_FOUND,
@@ -93,7 +93,7 @@ public class EmprestimoService {
 
 
     private void markEmprestimoAsVencido(Emprestimo emprestimo) {
-        emprestimo.setStatus(StatusEmprestimo.VENCIDO);
+        emprestimo.setStatus(StatusEmprestimo.ATRASADO);
         this.emprestimoRepository.saveAndFlush(emprestimo);
     }
 
@@ -102,7 +102,7 @@ public class EmprestimoService {
                 livroEmprestimo,
                 List.of(
                         StatusEmprestimo.EM_USO,
-                        StatusEmprestimo.VENCIDO
+                        StatusEmprestimo.ATRASADO
                 )
         );
         if (optEmprestimo.isPresent()) {
@@ -115,7 +115,7 @@ public class EmprestimoService {
                     ServiceUtils.createExceptionMessage(
                             MessageTemplate.BOOK_LOAN_ALREADY_EXISTS,
                             DateUtils.dateToDDMMYYYY(emprestimoJaFeito.getDataDevolucao()),
-                            emprestimoJaFeito.getStatus().equals(StatusEmprestimo.VENCIDO)?
+                            emprestimoJaFeito.getStatus().equals(StatusEmprestimo.ATRASADO)?
                                     "- Vencido":
                                     ""
 
