@@ -6,6 +6,8 @@ import com.example.elolibrary.dto.output.ErrorOutputDto;
 import com.example.elolibrary.service.EmprestimoService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -22,6 +24,12 @@ public class EmprestimoController {
 
     @Autowired
     private EmprestimoService emprestimoService;
+
+    @GetMapping
+    public ResponseEntity<?> findAllByPage(@RequestParam(defaultValue = "0") Integer page, @RequestParam(defaultValue = "50") Integer size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok(this.emprestimoService.findAllByPage(pageable));
+    }
 
     @PostMapping
     public ResponseEntity<?> createNewEmprestimo(@Valid @RequestBody EmprestimoInputDto emprestimoInputDto) {

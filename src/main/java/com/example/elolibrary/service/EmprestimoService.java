@@ -3,6 +3,7 @@ package com.example.elolibrary.service;
 import com.example.elolibrary.dto.input.EmprestimoUpdateInputDto;
 import com.example.elolibrary.dto.output.EmprestimoOutputDto;
 import com.example.elolibrary.dto.input.EmprestimoInputDto;
+import com.example.elolibrary.dto.output.LivroOutputDto;
 import com.example.elolibrary.interfaces.OutputDto;
 import com.example.elolibrary.model.Emprestimo;
 import com.example.elolibrary.model.Livro;
@@ -15,6 +16,9 @@ import com.example.elolibrary.util.DateUtils;
 import com.example.elolibrary.util.MessageTemplate;
 import com.example.elolibrary.util.ServiceUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
@@ -36,6 +40,15 @@ public class EmprestimoService {
     private LivroRepository livroRepository;
 
     private static final String ENTIDADE_SERVICE="Emprestimo";
+
+
+    public Page<OutputDto<Emprestimo>> findAllByPage(Pageable pageable) {
+        List<OutputDto<Emprestimo>> pageLivro = emprestimoRepository.findAllByStatusNot(StatusEmprestimo.DEVOLVIDO, pageable)
+                .stream()
+                .map(livro -> new EmprestimoOutputDto().wrap(livro))
+                .toList();
+        return new PageImpl<>(pageLivro, pageable, pageLivro.size());
+    }
 
     public void createEmprestimo(EmprestimoInputDto emprestimoInputDto) throws HttpClientErrorException.BadRequest {
         this.checkDataDevolucao(emprestimoInputDto.getDataDevolucao());
