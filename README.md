@@ -31,3 +31,16 @@ emprestimos de livros, tendo como entidades:
 ### O que não foi realizado, mas pode ser implementado futuramente:
 
 - 📝 Autenticação com JWT (Atualmente só existem as roles definidas).
+
+
+### Como rodar a aplicação:
+
+ - Banco de dados:
+   - Baixar o backup "elolibrary_bkp" e restaurar no postgreSQL. Ele tem alguns dados já abastecidos, mas não é obrigátório baixar.
+   - Criar um usuário chamado "elolibrary_root" para ser dono do banco de dados "elolibrary_db"
+
+ - Aplicação Springboot:
+ 
+   - Baixar o java 22 e gradle para rodar o projeto.
+   - rodar o comando `./gradlew build` para compilar no linux ou `gradle.bat build` no windows;
+   - rodar o comando `./gradlew bootRun` para iniciar o projeto no linux ou `gradle.bat bootRun` no windows;
